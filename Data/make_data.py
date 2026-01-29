@@ -9,7 +9,21 @@ n_activity = 200000
 
 job_title = ['Software Engineer', 'Data Scientist', 'Product Manager', 'Marketing Manager', 'Sales Manager', 'HR Manager', 'Finance Manager', 'Legal Manager', 'IT Manager', 'Operations Manager']
 actionType = ['like', 'comment', 'share', 'follow', 'unfollow', 'viewed', 'post', 'left a note', 'poked']
+hobbies = [
+    'Reading', 'Gardening', 'Photography', 'Cooking', 'Hiking', 'Painting',
+    'Traveling', 'Swimming', 'Cycling', 'Running', 'Fishing', 'Knitting',
+    'Dancing', 'Writing', 'Playing Guitar', 'Video Gaming', 'Bird Watching',
+    'Woodworking', 'Sculpting', 'Chess', 'Origami', 'Baking', 'Surfing',
+    'Rock Climbing', 'Pottery', 'Astronomy', 'Calligraphy', 'Martial Arts'
+]
+
 # Create all the dataframes with type constraints and load data into them
+
+def getHobby():
+    hobby = random.choice(hobbies)
+    return hobby
+
+
 circleNetPage = pd.DataFrame({
     "id": np.arange(1, n_users + 1),
     "nickname": [
@@ -18,10 +32,7 @@ circleNetPage = pd.DataFrame({
     ],
     "job_title": np.random.choice(job_title, n_users),
     "region_code": np.random.randint(1, 51, n_users),
-    "fav_hobby": [
-        ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(5, 30)))
-        for _ in range(n_users)
-    ]
+    "fav_hobby": [getHobby() for _ in range(n_users)]
 })
 print("Circle net page done")
 follows = pd.DataFrame({
