@@ -43,3 +43,8 @@ Gardening	7013
 <h1>Output of Part B</h1>
 
 ![alt text](Images/part-b.png)
+
+
+<h1>Output of Part C</h1>
+
+![alt text](Images/part-c.png)
