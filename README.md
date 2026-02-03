@@ -38,3 +38,8 @@ Dancing	7096
 Fishing	7129
 Gardening	7013
 ```
+
+
+<h1>Output of Part B</h1>
+
+![alt text](Images/part-b.png)

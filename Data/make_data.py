@@ -35,6 +35,7 @@ circleNetPage = pd.DataFrame({
     "fav_hobby": [getHobby() for _ in range(n_users)]
 })
 print("Circle net page done")
+
 follows = pd.DataFrame({
     "colRel": np.arange(1, n_follows + 1),
     "id1": np.random.randint(1, n_users + 1, n_follows),
@@ -48,6 +49,7 @@ follows = pd.DataFrame({
     ]
 })
 print("follows done")
+
 # This function ensures that viewed is always at the front of the array and there is a list of actions
 def getAction():
     action = random.sample(actionType, random.randint(1, len(actionType) - 1))
@@ -60,9 +62,7 @@ activityLog = pd.DataFrame({
     "byWho": np.random.randint(1, n_users + 1, n_activity),
     "page_id": np.random.randint(1, n_users + 1, n_activity),
     "actionType": [getAction() for _ in range(n_activity)],
-    "actionTime": pd.to_datetime(
-        np.random.randint(1900, 2023, n_activity), format="%Y"
-    )
+    "actionTime": pd.to_datetime(np.random.randint(1900, 2023, n_activity), format="%Y")
 })
 print("activity log done")
 
