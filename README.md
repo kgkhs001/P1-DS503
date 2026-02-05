@@ -55,14 +55,23 @@ Gardening	7013
 
 <div>
     <h2>What I Did (Basic Solution)</h2>
-    <p></p>
+    <p>I broke this function down to three jobs. The first gets the number of instances of each page visit. It will return (PageID, # of occurences). The second job sorts the output from the first job to find the top 10 pages. The third job gets the information for those pages from the CircleNetPage csv.</p>
     <h2>Optimization I Tried (Advanced Solution)</h2>
     <p></p>
     <b>Did I succeed? YES</b>
 </div>
+
 
 <h1>Task C - Report all CircleNetPage users (NickName, and JobTitle) whose hobby (FavoriteHobby)
 is the same as your own (pick one). Note that the favorite hobby in the data file may be random sequence of characters unless you work with meaningful strings like “Reading”
 or “Basketball”. This is up to you.</h1>
 
 ![alt text](Images/part-c.png)
+
+<div>
+    <h2>What I Did (Basic Solution)</h2>
+    <p>This was a simple mapping problem. I filtered the users csv by a hobby, "Reading", and just returned the requested fields. This is the optimal solution as I am not using a reducer and only a mapper.</p>
+    <h2>Optimization I Tried (Advanced Solution)</h2>
+    <p>Didn't use a reducer and only used a mapper in the appropriate places. No need for a combiner of any kind.</p>
+    <b>Did I succeed? YES</b>
+</div>
