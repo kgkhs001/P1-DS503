@@ -55,24 +55,70 @@ public class B {
 // Job 2 rank them. The input should be <key, value> = <pageID, count>
 // The output should be a ranked list of pageIDs with the counts
     public static class TopUsersMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
-        class User{
+        private Map<String, String> pageInfo = new HashMap<>();
+        class MetaData {
             String pageID;
-            Integer visits;
+            String nickName;
+            String jobTitle;
 
-            User(String pageID, Integer visits){
+            MetaData(String pageID, String nickName, String jobTitle) {
                 this.pageID = pageID;
+                this.nickName = nickName;
+                this.jobTitle = jobTitle;
+            }
+        }
+
+        class User {
+            MetaData info;
+            int visits;
+
+            User(MetaData info, int visits) {
+                this.info = info;
                 this.visits = visits;
             }
         }
+
         private PriorityQueue<User> top10;
+
         @Override
-        protected void setup(Context context) {
-            top10 = new PriorityQueue<>((a,b) -> Integer.compare(a.visits, b.visits));
+        protected void setup(Context context) throws IOException {
+            // Min-heap by visits
+            top10 = new PriorityQueue<>(
+                (a, b) -> Integer.compare(a.visits, b.visits)
+            );
+
+            // Load CircleNetPage.csv from Distributed Cache
+            BufferedReader reader = new BufferedReader(
+                new FileReader("circleNetPage.csv")
+            );
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length < 3) continue;
+
+                pageInfo.put(parts[0], parts[1] + "," + parts[2]);
+            }
+            reader.close();
         }
+
         @Override
-        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+        public void map(LongWritable key, Text value, Context context)
+                throws IOException, InterruptedException {
+
+            // Input: pageID \t count
             String[] parts = value.toString().split("\t");
-            top10.add(new User(parts[0], Integer.valueOf(parts[1])));
+            if (parts.length != 2) return;
+
+            String pageId = parts[0];
+            int visits = Integer.parseInt(parts[1]);
+
+            String meta = pageInfo.getOrDefault(pageId, "Unknown,Unknown");
+            String[] m = meta.split(",");
+
+            MetaData md = new MetaData(pageId, m[0], m[1]);
+            top10.add(new User(md, visits));
+
             if (top10.size() > 10) {
                 top10.poll();
             }
@@ -80,123 +126,119 @@ public class B {
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
+        while (!top10.isEmpty()) {
+            User u = top10.poll();
+            String outKey =
+                u.info.pageID + "," +
+                u.info.nickName + "," +
+                u.info.jobTitle;
+
+            context.write(new Text(outKey), new IntWritable(u.visits));
+        }
+        }
+    }
+
+    public static class TopUsersReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+
+        class User {
+            Text key;
+            int visits;
+
+            User(Text key, int visits) {
+                this.key = key;
+                this.visits = visits;
+            }
+        }
+
+        private PriorityQueue<User> top10;
+
+        @Override
+        protected void setup(Context context) {
+            top10 = new PriorityQueue<>(
+                (a, b) -> Integer.compare(a.visits, b.visits)
+            );
+        }
+
+        @Override
+        public void reduce(Text key,
+                        Iterable<IntWritable> values,
+                        Context context) {
+
+            // Exactly ONE value per key
+            int visits = values.iterator().next().get();
+
+            top10.add(new User(new Text(key), visits));
+
+            if (top10.size() > 10) {
+                top10.poll();
+            }
+        }
+
+        @Override
+        protected void cleanup(Context context)
+                throws IOException, InterruptedException {
+
             while (!top10.isEmpty()) {
-                User user = top10.poll();
-                context.write(new Text(user.pageID), new IntWritable(user.visits));
+                User u = top10.poll();
+                context.write(u.key, new IntWritable(u.visits));
             }
         }
     }
 
-    
-// Job 3 finds the rest of the user info
-    public static class PageJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
-        private Map<String, String> pageInfo = new HashMap<>();
-        
-        @Override
-        protected void setup(Context context) throws IOException {
+  
+  
+    public static void main(String[] args) throws Exception {
 
-            BufferedReader reader = new BufferedReader(new FileReader("circleNetPage.csv"));
+        Configuration conf = new Configuration();
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    String[] parts = line.split(",");
-                    if (parts.length < 3) continue;
+        Path job1Out = new Path("tmp_job1_counts");
+        Path job2Out = new Path("tmp_job2_top10");
 
-                    String pageId = parts[0];
-                    String nickName = parts[1];
-                    String jobTitle = parts[2];
+        // Job 1
+        Job job1 = Job.getInstance(conf, "B_CountPages");
+        job1.setJarByClass(B.class);
 
-                    pageInfo.put(pageId, nickName + "," + jobTitle);
-                }
-                reader.close();
-            }
+        job1.setMapperClass(CountMapper.class);
+        job1.setReducerClass(CountReducer.class);
+        job1.setCombinerClass(CountReducer.class);
 
+        job1.setMapOutputKeyClass(Text.class);
+        job1.setMapOutputValueClass(IntWritable.class);
 
-        @Override
-        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            String[] parts = value.toString().split("\t");
-            if (parts.length != 2) return;
-            String pageId = parts[0];
-            String info = pageInfo.get(pageId);
-            if (info != null) {
-                context.write(
-                    new Text(pageId),
-                    new Text(info)
-                );
-            }
+        job1.setOutputKeyClass(Text.class);
+        job1.setOutputValueClass(IntWritable.class);
+
+        job1.setNumReduceTasks(1);
+
+        FileInputFormat.addInputPath(job1, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job1, job1Out);
+
+        if (!job1.waitForCompletion(true)) {
+            System.exit(1);
         }
+
+        // Job 2
+        Job job2 = Job.getInstance(conf, "B_TopUsers");
+        job2.setJarByClass(B.class);
+
+        job2.setMapperClass(TopUsersMapper.class);
+        job2.setReducerClass(TopUsersReducer.class);
+
+        job2.setNumReduceTasks(1);
+
+        job2.setOutputKeyClass(Text.class);
+        job2.setOutputValueClass(IntWritable.class);
+
+        job2.addCacheFile(new URI(args[1] + "#circleNetPage.csv"));
+
+        FileInputFormat.addInputPath(job2, job1Out);
+        FileOutputFormat.setOutputPath(job2, job2Out);
+
+        if (!job2.waitForCompletion(true)) {
+            System.exit(1);
+        }
+
+        System.exit(0);
     }
-
-    
-  public static void main(String[] args) throws Exception {
-
-    Configuration conf = new Configuration();
-
-    Path job1Out = new Path("tmp_job1_counts");
-    Path job2Out = new Path("tmp_job2_top10");
-
-    // Job 1
-    Job job1 = Job.getInstance(conf, "B_CountPages");
-    job1.setJarByClass(B.class);
-
-    job1.setMapperClass(CountMapper.class);
-    job1.setReducerClass(CountReducer.class);
-    job1.setCombinerClass(CountReducer.class);
-
-    job1.setMapOutputKeyClass(Text.class);
-    job1.setMapOutputValueClass(IntWritable.class);
-
-    job1.setOutputKeyClass(Text.class);
-    job1.setOutputValueClass(IntWritable.class);
-
-    job1.setNumReduceTasks(1);
-
-    FileInputFormat.addInputPath(job1, new Path(args[0]));
-    FileOutputFormat.setOutputPath(job1, job1Out);
-
-    if (!job1.waitForCompletion(true)) {
-        System.exit(1);
-    }
-
-    // Job 2
-    Job job2 = Job.getInstance(conf, "B_TopUsers");
-    job2.setJarByClass(B.class);
-
-    job2.setMapperClass(TopUsersMapper.class);
-    job2.setNumReduceTasks(0);
-
-    job2.setOutputKeyClass(Text.class);
-    job2.setOutputValueClass(IntWritable.class);
-
-    FileInputFormat.addInputPath(job2, job1Out);
-    FileOutputFormat.setOutputPath(job2, job2Out);
-
-    if (!job2.waitForCompletion(true)) {
-        System.exit(1);
-    }
-
-    // Job 3
-    Job job3 = Job.getInstance(conf, "B_JoinPageInfo");
-    job3.setJarByClass(B.class);
-
-    job3.setMapperClass(PageJoinMapper.class);
-    job3.setNumReduceTasks(0);
-
-    job3.setOutputKeyClass(Text.class);
-    job3.setOutputValueClass(Text.class);
-
-    FileInputFormat.addInputPath(job3, job2Out);
-    FileOutputFormat.setOutputPath(job3, new Path(args[2]));
-
-    // job3.addCacheFile(new Path(args[1]).toUri());
-    job3.addCacheFile(new URI(args[1] + "#circleNetPage.csv"));
-
-
-    if (!job3.waitForCompletion(true)) {
-        System.exit(1);
-    }
-
-    System.exit(0);
-}
 
 }
