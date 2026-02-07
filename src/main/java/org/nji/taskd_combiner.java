@@ -37,12 +37,12 @@ public class taskd_combiner {
             String item3 = itr.nextToken();
             System.out.println(value.toString());
             if (fileType == IdentifyFile.File.Follows) {
-                System.out.println("follows");
+
                 id1.set(item3);
                 t.set(item2);
                 context.write(id1,t);
             } else if (fileType == IdentifyFile.File.CircleNet) {
-                System.out.println("circle");
+
                 id1.set(item1);
                 t.set(item2);
                 context.write(id1,t);
