@@ -49,13 +49,13 @@ Gardening	7013
     <b>Did I succeed? YES</b>
 </div>
 
-<h1>Task B - Find the 10 most popular CircleNetPages, namely, those that got the most accesses based on the ActivityLog among all pages. Return Id, NickName, and JobTitle.</h1>
+<h1>Task B - Find the 10 most popular CircleNetPages, namely, those that got the most accesses based on the ActivityLog among all pages. Return ID, NickName, and JobTitle.</h1>
 
 ![alt text](Images/part-b.png)
 
 <div>
     <h2>What I Did (Basic Solution)</h2>
-    <p>I broke this function down to three jobs. The first gets the number of instances of each page visit. It will return (PageID, # of occurences). The second job sorts the output from the first job to find the top 10 pages. The third job gets the information for those pages from the CircleNetPage csv.</p>
+    <p>I broke this function down to three jobs. The first gets the number of instances of each page visit. It will return (PageID, # of occurrences). The second job sorts the output from the first job to find the top 10 pages. The third job gets the information for those pages from the CircleNetPage csv.</p>
     <h2>Optimization I Tried (Advanced Solution)</h2>
     <p></p>
     <b>Did I succeed? YES</b>
@@ -75,3 +75,38 @@ or “Basketball”. This is up to you.</h1>
     <p>Didn't use a reducer and only used a mapper in the appropriate places. No need for a combiner of any kind.</p>
     <b>Did I succeed? YES</b>
 </div>
+
+
+
+
+<h1>Task F- Report all owners of a CircleNetPage who are more popular than an average user, namely, 
+those who have more followers than the average number of followers across all owners of a CircleNetPage.</h1>
+
+<div>
+    <h2>What I Did (Basic Solution)</h2>
+    <p></p>
+    <h2>Optimization I Tried (Advanced Solution)</h2>
+    <p></p>
+</div>
+
+
+<h1>Task G- Identify "outdated" CircleNetPages. Return IDs and nicknames of persons that have not accessed 
+CircleNet for 90 days (i.e., no entries in the ActivityLog in the last 90 days).</h1>
+
+<div>
+    <h2>What I Did (Basic Solution)</h2>
+    <p></p>
+    <h2>Optimization I Tried (Advanced Solution)</h2>
+    <p></p>
+</div>
+
+<h1>Task H- Identify all those people who follow somebody’s CircleNetPage in their same RegionCode 
+but are not being followed back. Report IDs and nicknames.</h1>
+
+<div>
+    <h2>What I Did (Basic Solution)</h2>
+    <p></p>
+    <h2>Optimization I Tried (Advanced Solution)</h2>
+    <p></p>
+</div>
+
