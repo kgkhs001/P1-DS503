@@ -110,7 +110,7 @@ public class taske_combiner {
         long startTime = System.currentTimeMillis();
         int r = job1Run(inputPath,outputPath);
         long elapsedTime = System.currentTimeMillis() - startTime;
-        System.out.println(elapsedTime + " FOR THIS TOTAL JOB");
+        System.out.println(elapsedTime + " FOR THIS TOTAL task e JOB");
 
         System.exit(r);
     }

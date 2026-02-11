@@ -32,7 +32,6 @@ public class taske {
     private static class job1Mapper
             extends Mapper<Object, Text, IntWritable, Text>{
         private  IntWritable id1 = new IntWritable();
-        private  IntWritable id2 = new IntWritable();
         Text t = new Text();
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -41,10 +40,7 @@ public class taske {
             }
 
             StringTokenizer itr = new StringTokenizer(value.toString(),",");
-            itr.nextToken(); //through away row ID
-            //id1.set(Integer.valueOf(itr.nextToken()));
-            //id2.set(Integer.valueOf(itr.nextToken()));
-            //context.write(id2,id1);
+            itr.nextToken(); //throw away row ID
             t.set(itr.nextToken());
             id1.set(Integer.valueOf(itr.nextToken()));
             context.write(id1,t);
@@ -61,7 +57,6 @@ public class taske {
                            Context context
         ) throws IOException, InterruptedException {
             List<String> a = new ArrayList<>();
-
             for (Text v : values){
                 a.add(v.toString());
             }

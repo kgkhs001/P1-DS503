@@ -35,16 +35,15 @@ public class taskd_combiner {
             String item1 = itr.nextToken();
             String item2 = itr.nextToken();
             String item3 = itr.nextToken();
-            System.out.println(value.toString());
             if (fileType == IdentifyFile.File.Follows) {
 
                 id1.set(item3);
-                t.set(item2);
+                t.set("F"+item2);
                 context.write(id1,t);
             } else if (fileType == IdentifyFile.File.CircleNet) {
 
                 id1.set(item1);
-                t.set(item2);
+                t.set("C"+item2);
                 context.write(id1,t);
             }
 
@@ -77,17 +76,17 @@ public class taskd_combiner {
                            Context context
         ) throws IOException, InterruptedException {
 
-            Pattern p = Pattern.compile("^\\d*$");
             Set<String> hs = new HashSet<>();
             String name = "";
             for (Text v : values){
                 // would get the nickname from a stream
                 // but we have to add everything to the arraylist anyway
                 String s = v.toString();
-                if (p.matcher(s).find()) {
-                    hs.add(s);
+                String sReturn = s.substring(1);
+                if (s.startsWith("F")) {
+                    hs.add(sReturn);
                 } else {
-                    name = s;
+                    name = sReturn;
                 }
             }
 
