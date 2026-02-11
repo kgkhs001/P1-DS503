@@ -9,13 +9,11 @@
 ![alt text](./Images/image-2.png)
 
 
-
 <h1>2. Loading Into Hadoop</h1>
 Krishna -
 
 ![alt text](./Images/image-3.png)
 ![alt text](./Images/image-4.png)
-
 
 
 <h1>3. Queries</h1>
@@ -77,10 +75,9 @@ or “Basketball”. This is up to you.</h1>
 </div>
 
 
+<h1><br/><br/><br/>End Krishna's Part<br/><br/><br/></h1>
 
-
-
-
+<br/><br/><br/>
 # Preamble - Nathaniel Ince
 Created my own data generation independently, unattached. All items have been run on small data sets to prove they function.
 
@@ -90,7 +87,7 @@ It largely does this by using regexp to identify which of the first
 entries are numbers or not numbers. This could be done as ONE regexp
 instead of a string tokenizer running checks, I suppose. Not going to
 implement it right now, though.
-# Task d
+# Task D
 Task d is a task that could be done as two jobs - a join and then a count. You would usually want to do this with two
 jobs, but the thought hadn't honestly occurred to me.
 ## Unoptimized
@@ -116,7 +113,7 @@ Runtimes:
 135909 (1)
 126610 (2)
 
-## Optimization one
+## Optimization One
 __Mapper__: works the same way as unoptimized version
 __Combiner__: Simply does the reduction step early - dumps the values into a hashset, then for each value in the hashset write it as value to context with key equalling the id.
 __Reducer__: Works the same way as unoptimized version.
@@ -129,7 +126,7 @@ Runtimes:
 
 Unecertain how much better things would be on a real setup with multiple nodes. Still this shows some improvement consistently.
 
-## Optimization two
+## Optimization Two
 __Mapper__: works the same way as unoptimized version
 __Combiner__: In order to make more significant progress and avoid the overhead of a hashset, all we do is make the values
 into a string. We get the values of the Text values and just join them with commas into one large string. So only one key-value pair is written to context.  
@@ -151,7 +148,7 @@ Runtimes with ArrayList:
 Surprisingly, the ArrayList shows consistent better runtimes than previous. To determine if Hashmap brings
 improvements consistently over previous we would need more runs.
 
-# Task e
+# Task E
 ## Unoptimized
 __Mapper__: Report the id of the person doing the action as key and who he did it to as value to context.
 __Reducer__: For each id, dump all the values into an ArrayList, put the ArrayList in a Hashmap. Write to context the same id, and then as text the combination of the
@@ -166,7 +163,7 @@ Runtimes:
 
 Already pretty fast.
 
-## Optimization one
+## Optimization One
 __Mapper__: Same as above
 __Combiner__: Create a Hashmap, count each value that is in the list of values. Then write to context our key as the kay and a joined string of the value and its count for each value in the hashmap.
 __Reducer__: For each key: Split the value-count pairs in the values list. Add the value to a hashset and sum the counts. The latter sum is the total number of accesses, the size of the former hashset is how many distinct accounts.
@@ -180,7 +177,7 @@ Runtimes:
 
 So... this is not improvement. Possibly because combiners create more overhead than they would on a real setup and because of data structure creation overhead.
 
-## Optimization two
+## Optimization Two
 __Mapper__: Same as above
 __Combiner__: We take the approach we did with d's second optimization and just join all the values into a string
 __Reducer__: Break apart the strings, dump their values into an ArrayList and a Hashset. Former size gives us number of accesses, latter how many distinct accounts, write to context with id as key as before.

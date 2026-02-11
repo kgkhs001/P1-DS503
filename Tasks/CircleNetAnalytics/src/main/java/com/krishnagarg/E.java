@@ -27,7 +27,7 @@ IDs are enough.
 
 15265,61480,Viewed: Y62UwIX65fpFTTibX68lfdF,638251
  */
-public class taske {
+public class E {
 
     private static class job1Mapper
             extends Mapper<Object, Text, IntWritable, Text>{

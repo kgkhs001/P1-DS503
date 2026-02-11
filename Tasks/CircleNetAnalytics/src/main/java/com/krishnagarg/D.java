@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 import org.nji.utils.IdentifyFile;
 
-public class taskd {
+public class D {
 
     public static class job1Mapper
             extends Mapper<Object, Text, IntWritable, Text>{
