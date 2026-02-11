@@ -1,4 +1,4 @@
-package org.example.utils;
+package org.nji.utils;
 
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;

@@ -1,4 +1,4 @@
-package org.example;
+package org.nji;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import org.example.utils.IdentifyFile;
+import org.nji.utils.IdentifyFile;
 
 public class taskd_combiner {
 

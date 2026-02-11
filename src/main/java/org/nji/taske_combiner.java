@@ -1,4 +1,4 @@
-package org.example;
+package org.nji;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -14,7 +14,7 @@ import org.apache.hadoop.thirdparty.protobuf.MapEntry;
 import java.io.IOException;
 import java.util.*;
 
-import org.example.utils.IdentifyFile;
+import org.nji.utils.IdentifyFile;
 
 public class taske_combiner {
 

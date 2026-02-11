@@ -1,4 +1,4 @@
-package org.example;
+package org.nji;
 
 
 import org.apache.hadoop.conf.Configuration;
@@ -16,7 +16,7 @@ import java.io.IOException;
 
 import java.util.*;
 
-import org.example.utils.IdentifyFile;
+import org.nji.utils.IdentifyFile;
 
 /*
 Determine which people have favorites. That is, for each CircleNetPage owner, determine
