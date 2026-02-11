@@ -53,11 +53,34 @@ Gardening	7013
 
 ![alt text](Images/part-b.png)
 
+<b>After optimization</b>
+
+```
+root@38fbeffd6f18:/home/ds503/shared_folder/Proj1/Queries/CircleNetAnalytics/target# hdfs dfs -ls tmp_job2_top10
+Found 2 items
+-rw-r--r--   1 root supergroup          0 2026-02-06 21:45 tmp_job2_top10/_SUCCESS
+-rw-r--r--   1 root supergroup        400 2026-02-06 21:45 tmp_job2_top10/part-r-00000
+root@38fbeffd6f18:/home/ds503/shared_folder/Proj1/Queries/CircleNetAnalytics/target# 
+root@38fbeffd6f18:/home/ds503/shared_folder/Proj1/Queries/CircleNetAnalytics/target# hdfs dfs -cat tmp_job2_top10/part-r-00000
+
+13468,CzphwDzPIFRuzQIT,HR Manager	7
+94861,IjgDcxihPNmgu,Finance Manager	7
+90560,BbWqlWfJbq,Marketing Manager	7
+145732,xgdAXDraHSdDXlY,Operations Manager	7
+52747,oSpgBDiOusmPbqPKxRX,Sales Manager	7
+46330,cjixtXsXIPVRespnIVTE,Software Engineer	7
+23599,qsNTgDMTUULYTU,Legal Manager	7
+60998,XMucEICDzAdR,Product Manager	7
+153581,UJLLUCpbHpuyyQyMeqlp,Software Engineer	7
+20460,qCzzCHeghrKSLj,HR Manager	8
+```
+
+
 <div>
     <h2>What I Did (Basic Solution)</h2>
     <p>I broke this function down to three jobs. The first gets the number of instances of each page visit. It will return (PageID, # of occurences). The second job sorts the output from the first job to find the top 10 pages. The third job gets the information for those pages from the CircleNetPage csv.</p>
     <h2>Optimization I Tried (Advanced Solution)</h2>
-    <p></p>
+    <p>The current implementation in this scenario is not the optimal solution however. Job 2 can be merged with Job 3 into a singular job. Instead of counting values, ranking them, and then merging the other data about the users, I will merge the ranking, counting, and joining into one reducer.</p>
     <b>Did I succeed? YES</b>
 </div>
 
