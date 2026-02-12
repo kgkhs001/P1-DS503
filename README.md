@@ -57,7 +57,7 @@ Gardening	7013
     <h2>What I Did (Basic Solution)</h2>
     <p>I broke this function down to three jobs. The first gets the number of instances of each page visit. It will return (PageID, # of occurrences). The second job sorts the output from the first job to find the top 10 pages. The third job gets the information for those pages from the CircleNetPage csv.</p>
     <h2>Optimization I Tried (Advanced Solution)</h2>
-    <p></p>
+    <p>No optimization was necessary.</p>
     <b>Did I succeed? YES</b>
 </div>
 
