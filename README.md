@@ -83,6 +83,8 @@ or “Basketball”. This is up to you.</h1>
 # Preamble - Nathaniel Ince
 Created my own data generation independently, unattached. All items have been run on small data sets to prove they function.
 
+To run them, I usually open the root folder as a project in IntelliJ, use project structure settings to set up each task as an artifact and then build each task as an artifact. Then I move the artifact into my shared_folder setup.
+
 # Utils
 I wrote a small utility function to identify what file is being read.
 It largely does this by using regexp to identify which of the first
