@@ -1,6 +1,9 @@
 <h1>1. Data Loading Portion</h1>
 
-<b>Krishna</b> - I made three dataframes with the proper constraints and specifications outlined by the document. This was the fastest way I could figure out how to do it. It is in fact slow and the follows.csv does take about a gigabyte of space of your RAM, so be careful opening it up. The values are fairly realistic except maybe 
+<b>Krishna</b> - I made three dataframes with the proper constraints and specifications outlined by the document. 
+This was the fastest way I could figure out how to do it. It is in fact slow and the follows.csv does take about a 
+gigabyte of space of your RAM, so be careful opening it up. The values are fairly realistic except maybe the nickname, 
+which is a random string. 
 
 <b>AI Usage</b> - AI was used in understanding the concepts of MapReduce and also gave me the boiler template for MapReduce functions. Logic was completely done without AI.
 
@@ -10,7 +13,6 @@
 
 
 <h1>2. Loading Into Hadoop</h1>
-Krishna -
 
 ![alt text](./Images/image-3.png)
 ![alt text](./Images/image-4.png)
@@ -43,17 +45,17 @@ Gardening	7013
     <h2>What I Did (Basic Solution)</h2>
     <p>I made a mapper function that associates each Favorite Hobby (key) with the number one. Then in the mapper, I sum up the list of values with the associated distinct key. The key value pairs were shuffled and sorted automatically.</p>
     <h2>Optimization I Tried (Advanced Solution)</h2>
-    <p>A more optimized solution would be one that implements a combiner since from the mapper a key value pair of (Reading, 1) would be going across the network to the reducer. Instead of summing up the values in the list (since they are all 1) in the reducer we could take care of the big chunk of the processing in the combiner. So I just made my reducer my combiner as well since it may or may not get used. So this is the optimal solution</p>
+    <p>A more optimized solution would be one that implements a combiner since from the mapper a key value pair of (Reading, 1) would be going across the network to the reducer. Instead of summing up the values in the list (since they are all 1) in the reducer we could take care of the big chunk of the processing in the combiner. So I just made my reducer my combiner as well since it may or may not get used. So this is the optimal solution.</p>
     <b>Did I succeed? YES</b>
 </div>
 
-<h1>Task B - Find the 10 most popular CircleNetPages, namely, those that got the most accesses based on the ActivityLog among all pages. Return Id, NickName, and JobTitle.</h1>
+<h1>Task B - Find the 10 most popular CircleNetPages, namely, those that got the most accesses based on the ActivityLog among all pages. Return ID, NickName, and JobTitle.</h1>
 
 ![alt text](Images/part-b.png)
 
 <div>
     <h2>What I Did (Basic Solution)</h2>
-    <p>I broke this function down to three jobs. The first gets the number of instances of each page visit. It will return (PageID, # of occurences). The second job sorts the output from the first job to find the top 10 pages. The third job gets the information for those pages from the CircleNetPage csv.</p>
+    <p>I broke this function down to three jobs. The first gets the number of instances of each page visit. It will return (PageID, # of occurrences). The second job sorts the output from the first job to find the top 10 pages. The third job gets the information for those pages from the CircleNetPage csv.</p>
     <h2>Optimization I Tried (Advanced Solution)</h2>
     <p></p>
     <b>Did I succeed? YES</b>
@@ -82,7 +84,7 @@ or “Basketball”. This is up to you.</h1>
 Created my own data generation independently, unattached. All items have been run on small data sets to prove they function.
 
 # Utils
-I wrote a small uitlity function to identify what file is being read.
+I wrote a small utility function to identify what file is being read.
 It largely does this by using regexp to identify which of the first
 entries are numbers or not numbers. This could be done as ONE regexp
 instead of a string tokenizer running checks, I suppose. Not going to
@@ -102,7 +104,7 @@ This will make more sense when we
 __Reducer__: We simply go through the values and add them all to a hashset if they are followers - values that start with "F".
 If the value starts with a "C" it's set to the name field. This is why we marked different values the way we did.
 
-I'd prefer to do this with a stream and a filter but you'd have to make the iterable into a collection which seems slow.
+I'd prefer to do this with a stream and a filter, but you'd have to make the iterable into a collection which seems slow.
 This process is what happens under the hood anyway.
 
 Then we just write to context with nickname as key and size of the hashmap - the number of followers after removing possible duplicate values - as our value.
@@ -115,7 +117,7 @@ Runtimes:
 
 ## Optimization One
 __Mapper__: works the same way as unoptimized version
-__Combiner__: Simply does the reduction step early - dumps the values into a hashset, then for each value in the hashset write it as value to context with key equalling the id.
+__Combiner__: Simply does the reduction step early - dumps the values into a hashset, then for each value in the hashset write it as value to context with the key equalling the id.
 __Reducer__: Works the same way as unoptimized version.
 
 This will have the same number of mappers and reducers, but the hope would be fewer key-value pairs in the transfer.
@@ -124,7 +126,7 @@ Runtimes:
 111596 (1)
 105425 (2)
 
-Unecertain how much better things would be on a real setup with multiple nodes. Still this shows some improvement consistently.
+Uncertain how much better things would be on a real setup with multiple nodes. Still this shows some improvement consistently.
 
 ## Optimization Two
 __Mapper__: works the same way as unoptimized version
@@ -135,7 +137,7 @@ to the hashset if it's a follower, setting it as name if it's a nickname, and wr
 
 Same number of mappers and reducers, but this should reduce operations overall.
 
-Note that for this one, the combienr can either use an ArrayLst or a Hashset. I have added an extra argument that can be "hs" to use a Hashset, anything else to use an ArrayList.
+Note that for this one, the combiner can either use an ArrayLst or a Hashset. I have added an extra argument that can be "hs" to use a Hashset, anything else to use an ArrayList.
 
 Runtimes with HashMap:
 107433 (1)
@@ -190,15 +192,23 @@ Runtimes:
 
 Quite an improvement.
 
+<br/><br/><br/>
+## Ryker Germain
+<h3> I also created my own data generation method for Step 1 and 2 for local testing. However, we all used Krishna's method 
+for consistency. I then completed Tasks F, G, and H (methodology described below).   </h3>
 
 <h1>Task F- Report all owners of a CircleNetPage who are more popular than an average user, namely, 
 those who have more followers than the average number of followers across all owners of a CircleNetPage.</h1>
 
 <div>
     <h2>What I Did (Basic Solution)</h2>
-    <p></p>
-    <h2>Optimization I Tried (Advanced Solution)</h2>
-    <p></p>
+    <p>This problem requires 2 jobs; the first calculates the average number of followers for a user, and the second
+counts the number of followers per user and filters out the users with a below average count.</p>
+    <h2>Optimization I Made (Advanced Solution)</h2>
+    <p>The first optimization I made was using a combiner. Rather than sending thousands of 1s across the network for
+a popular user, this combines them before they are sent to the reducer. The second optimization I made was using a
+distributed cache to store the global follower average as a single variable in a text file. This drastically reduces
+the work done in Job 2's Reducer.</p>
 </div>
 
 
@@ -207,9 +217,13 @@ CircleNet for 90 days (i.e., no entries in the ActivityLog in the last 90 days).
 
 <div>
     <h2>What I Did (Basic Solution)</h2>
-    <p></p>
-    <h2>Optimization I Tried (Advanced Solution)</h2>
-    <p></p>
+    <p>This problem requires a couple of tasks. The first mapper gets the maximum (latest) activity timestamp each user
+has performed. The second mapper reads the page dataset to match each pageID with a nickname. Finally, the reducer
+checks if the latest action was within the deadline. If not, it returns the page and name.</p>
+    <h2>Optimization I Made (Advanced Solution)</h2>
+    <p>This problem can be optimized using a distributed cache because the Pages dataset is relatively small. 
+This enables us to use a hashmap, meaning we can get rid of the reducer. We can also use a combiner in Mapper 1 to
+find the local maxima per user more efficiently.</p>
 </div>
 
 <h1>Task H- Identify all those people who follow somebody’s CircleNetPage in their same RegionCode 
@@ -217,7 +231,12 @@ but are not being followed back. Report IDs and nicknames.</h1>
 
 <div>
     <h2>What I Did (Basic Solution)</h2>
-    <p></p>
-    <h2>Optimization I Tried (Advanced Solution)</h2>
-    <p></p>
+    <p>This problem checks for a reciprocal relationship between 2 pages in the same region. The mapper makes a key of 2
+pages and the follows value. The reducer then checks to see if it receives inverse keys. If it does, they are mutual. If 
+not, they are output. </p>
+    <h2>Optimization I Made (Advanced Solution)</h2>
+    <p>The simplest optimization is to have the mapper discard all pairs with differing regions. This reduces the
+amount of data the reducer needs to process. The second optimization is a bit more complex. We can load the entire page
+dataset into a distributed cache hashmap. This prevents the need to use a join, which would balloon due to the
+repetitive follower count possibility (i.e. many-to-many relationship). </p>
 </div>

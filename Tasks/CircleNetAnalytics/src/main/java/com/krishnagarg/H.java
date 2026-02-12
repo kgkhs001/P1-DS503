@@ -56,7 +56,6 @@ public class H {
                             // ID, Name, Job, Region
                             pageCache.put(parts[0].trim(), new UserInfo(parts[1].trim(), Integer.parseInt(parts[3].trim())));
                         } catch (NumberFormatException e) {
-                            // ignore bad lines
                         }
                     }
                 }
