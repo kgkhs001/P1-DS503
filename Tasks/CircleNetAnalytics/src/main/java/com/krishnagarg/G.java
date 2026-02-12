@@ -22,7 +22,6 @@ public class G {
 
     /**
      * JOB 1: Find the maximum timestamp in the Activity dataset.
-     * Mapper:
      */
     public static class MaxTimeMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
         private final static Text timeKey = new Text("MAX_TIME");
@@ -73,7 +72,7 @@ public class G {
                     String fileName = path.getName();
 
                     // Case A: Loading the Page Nicknames
-                    if (fileName.contains("pages")) { // Assuming input file name contains 'pages'
+                    if (fileName.contains("circleNetPage") || fileName.contains("pages")) {
                         loadPageData(path, context.getConfiguration());
                     }
                     // Case B: Loading the Max Time from Job 1
@@ -102,7 +101,10 @@ public class G {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(path)))) {
                 String line = br.readLine();
                 if (line != null) {
-                    globalMaxTime = Long.parseLong(line.split("\t")[1].trim());
+                    String[] parts = line.split("\t");
+                    if (parts.length >= 2) {
+                        globalMaxTime = Long.parseLong(parts[1].trim());
+                    }
                 }
             }
         }
@@ -112,10 +114,13 @@ public class G {
             String[] parts = value.toString().split(",");
             if (parts.length >= 5) {
                 String personId = parts[1].trim();
-                long time = Long.parseLong(parts[4].trim());
-
-                // Keep track of the latest activity for every user seen in the log
-                userLastActive.put(personId, Math.max(userLastActive.getOrDefault(personId, 0L), time));
+                try {
+                    long time = Long.parseLong(parts[4].trim());
+                    // Keep track of the latest activity for every user seen in the log
+                    userLastActive.put(personId, Math.max(userLastActive.getOrDefault(personId, 0L), time));
+                } catch (NumberFormatException e) {
+                    // Skip header or malformed lines
+                }
             }
         }
 
@@ -136,18 +141,31 @@ public class G {
     }
 
     public static void main(String[] args) throws Exception {
-        // Set local mode for testing
         Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "file:///");
 
-        Path activityInput = new Path("C:/Users/ryker/IdeaProjects/Project1/activity_log_test.csv");
-        Path pagesInput = new Path("C:/Users/ryker/IdeaProjects/Project1/pages_test.csv");
-        Path intermediateOutput = new Path("C:/Users/ryker/IdeaProjects/Project1/max_time_out");
-        Path finalOutput = new Path("C:/Users/ryker/IdeaProjects/Project1/GOutput.txt");
+        // args[0]: ActivityLog
+        // args[1]: CircleNetPage
+        // args[2]: Output
 
-        // Cleanup intermediate folder if exists
+        if (args.length < 3) {
+            System.err.println("Usage: G <activity_log> <pages_file> <output_path>");
+            System.exit(-1);
+        }
+
+        Path activityInput = new Path(args[0]);
+        Path pagesInput = new Path(args[1]);
+        Path outputPath = new Path(args[2]);
+        Path intermediateOutput = new Path(outputPath.toString() + "_intermediate");
+
+        // Cleanup previous output folder if exists (to avoid FileAlreadyExistsException)
         FileSystem fs = FileSystem.get(conf);
-        if (fs.exists(intermediateOutput)) fs.delete(intermediateOutput, true);
+        if (fs.exists(outputPath)) {
+            System.out.println("Output path exists, deleting: " + outputPath);
+            fs.delete(outputPath, true);
+        }
+        if (fs.exists(intermediateOutput)) {
+             fs.delete(intermediateOutput, true);
+        }
 
         // JOB 1: Find Max Time
         Job job1 = Job.getInstance(conf, "Find Max Action Time");
@@ -157,6 +175,9 @@ public class G {
         job1.setReducerClass(MaxTimeReducer.class);
         job1.setOutputKeyClass(Text.class);
         job1.setOutputValueClass(LongWritable.class);
+        
+        job1.setNumReduceTasks(1); // Single reducer for global max
+
         FileInputFormat.addInputPath(job1, activityInput);
         FileOutputFormat.setOutputPath(job1, intermediateOutput);
 
@@ -165,18 +186,25 @@ public class G {
             Job job2 = Job.getInstance(conf, "Identify Outdated Pages");
             job2.setJarByClass(G.class);
             job2.setMapperClass(OutdatedMapper.class);
-            job2.setNumReduceTasks(0); // Optimization: Map-only job
+            job2.setNumReduceTasks(0); // Map-only job
 
             // Add Distributed Cache files
-            job2.addCacheFile(new URI("file://" + intermediateOutput.toUri().getPath() + "/part-r-00000"));
+            job2.addCacheFile(new URI(intermediateOutput.toString() + "/part-r-00000"));
             job2.addCacheFile(pagesInput.toUri());
 
             job2.setOutputKeyClass(Text.class);
             job2.setOutputValueClass(Text.class);
             FileInputFormat.addInputPath(job2, activityInput);
-            FileOutputFormat.setOutputPath(job2, finalOutput);
+            FileOutputFormat.setOutputPath(job2, outputPath);
 
-            System.exit(job2.waitForCompletion(true) ? 0 : 1);
+            boolean success = job2.waitForCompletion(true);
+
+            // Cleanup
+            if (fs.exists(intermediateOutput)) {
+                fs.delete(intermediateOutput, true);
+            }
+
+            System.exit(success ? 0 : 1);
         }
     }
 }

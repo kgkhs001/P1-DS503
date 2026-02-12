@@ -1,4 +1,4 @@
-package org.nji;
+package com.krishnagarg;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -14,7 +14,7 @@ import org.apache.hadoop.thirdparty.protobuf.MapEntry;
 import java.io.IOException;
 import java.util.*;
 
-import org.nji.utils.IdentifyFile;
+import com.krishnagarg.utils.IdentifyFile;
 
 public class taske_combiner {
 
@@ -87,7 +87,7 @@ public class taske_combiner {
     public static int job1Run(Path inputPath, Path outputPath) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "task e");
-        job.setJarByClass(MapReduce.class);
+        job.setJarByClass(taske_combiner.class);
         job.setMapperClass(job1Mapper.class);
         job.setCombinerClass(job1Combiner.class);
         job.setReducerClass(job1Reducer.class);

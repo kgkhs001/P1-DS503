@@ -1,4 +1,4 @@
-package org.nji;
+package com.krishnagarg;
 
 
 import org.apache.hadoop.conf.Configuration;
@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 
-import org.nji.utils.IdentifyFile;
+import com.krishnagarg.utils.IdentifyFile;
 
 public class D {
 
@@ -83,21 +83,21 @@ public class D {
         }
     }
 
-    public static int job1Run(Path inputPath, Path outputPath) throws Exception {
+    public static int job1Run(String inputPaths, Path outputPath) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "word count");
-        job.setJarByClass(MapReduce.class);
+        job.setJarByClass(D.class);
         job.setMapperClass(job1Mapper.class);
         job.setReducerClass(job1Reducer.class);
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, inputPath);
+        FileInputFormat.addInputPaths(job, inputPaths);
         FileOutputFormat.setOutputPath(job, outputPath);
         return job.waitForCompletion(true) ? 0 : 1;
     }
     public static void main(String[] args) throws Exception {
 
-        Path inputPath = new Path(args[0]);
+        String inputPaths = args[0];
         Path outputPath = new Path(args[1]);
         // job 1
         // map
@@ -107,7 +107,7 @@ public class D {
         // it's going to be a bunch of numbers and a name
         // stream and collect thing that's not number
         long startTime = System.currentTimeMillis();
-        int r = job1Run(inputPath,outputPath);
+        int r = job1Run(inputPaths,outputPath);
         long elapsedTime = System.currentTimeMillis() - startTime;
         System.out.println(elapsedTime + " FOR THIS TOTAL TASK d JOB");
 

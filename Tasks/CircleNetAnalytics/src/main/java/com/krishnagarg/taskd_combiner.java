@@ -1,4 +1,4 @@
-package org.nji;
+package com.krishnagarg;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import org.nji.utils.IdentifyFile;
+import com.krishnagarg.utils.IdentifyFile;
 
 public class taskd_combiner {
 
@@ -96,23 +96,23 @@ public class taskd_combiner {
         }
     }
 
-    public static int job1Run(Path inputPath, Path outputPath) throws Exception {
+    public static int job1Run(String inputPaths, Path outputPath) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "task d");
-        job.setJarByClass(MapReduce.class);
+        job.setJarByClass(taskd_combiner.class);
         job.setMapperClass(job1Mapper.class);
         job.setCombinerClass(job1Combiner.class);
         job.setReducerClass(job1Reducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, inputPath);
+        FileInputFormat.addInputPaths(job, inputPaths);
         FileOutputFormat.setOutputPath(job, outputPath);
         return job.waitForCompletion(true) ? 0 : 1;
     }
 
     public static void main(String[] args) throws Exception {
 
-        Path inputPath = new Path(args[0]);
+        String inputPaths = args[0];
         Path outputPath = new Path(args[1]);
         // job 1
         // - just get activitylog
@@ -120,7 +120,7 @@ public class taskd_combiner {
         // - reducer gets count and unique count (set size)
 
         long startTime = System.currentTimeMillis();
-        int r = job1Run(inputPath,outputPath);
+        int r = job1Run(inputPaths,outputPath);
         long elapsedTime = System.currentTimeMillis() - startTime;
         System.out.println(elapsedTime + " FOR THIS TOTAL task d combiner JOB");
 

@@ -1,4 +1,4 @@
-package org.nji;
+package com.krishnagarg;
 
 
 import org.apache.hadoop.conf.Configuration;
@@ -16,7 +16,7 @@ import java.io.IOException;
 
 import java.util.*;
 
-import org.nji.utils.IdentifyFile;
+import com.krishnagarg.utils.IdentifyFile;
 
 /*
 Determine which people have favorites. That is, for each CircleNetPage owner, determine
@@ -69,7 +69,7 @@ public class E {
     public static int job1Run(Path inputPath, Path outputPath) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "task e");
-        job.setJarByClass(MapReduce.class);
+        job.setJarByClass(E.class);
         job.setMapperClass(job1Mapper.class);
         job.setReducerClass(job1Reducer.class);
         job.setOutputKeyClass(IntWritable.class);

@@ -1,4 +1,4 @@
-package org.nji;
+package com.krishnagarg;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -8,7 +8,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.nji.utils.IdentifyFile;
+import com.krishnagarg.utils.IdentifyFile;
 
 import java.io.IOException;
 import java.util.*;
@@ -117,10 +117,10 @@ public class taskd_combiner_2 {
         }
     }
 
-    public static int job1Run(Path inputPath, Path outputPath, boolean useHs) throws Exception {
+    public static int job1Run(String inputPaths, Path outputPath, boolean useHs) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "task d");
-        job.setJarByClass(MapReduce.class);
+        job.setJarByClass(taskd_combiner_2.class);
         job.setMapperClass(job1Mapper.class);
         if (useHs) {
             job.setCombinerClass(job1Combiner_hs.class);
@@ -130,17 +130,17 @@ public class taskd_combiner_2 {
         job.setReducerClass(job1Reducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, inputPath);
+        FileInputFormat.addInputPaths(job, inputPaths);
         FileOutputFormat.setOutputPath(job, outputPath);
         return job.waitForCompletion(true) ? 0 : 1;
     }
 
     public static void main(String[] args) throws Exception {
 
-        Path inputPath = new Path(args[0]);
+        String inputPaths = args[0];
         Path outputPath = new Path(args[1]);
         boolean useHS = false;
-        if (args[2]=="hs"){
+        if (args.length > 2 && args[2].equals("hs")){
             useHS=true;
         }
         // job 1
@@ -149,7 +149,7 @@ public class taskd_combiner_2 {
         // - reducer gets count and unique count (set size)
 
         long startTime = System.currentTimeMillis();
-        int r = job1Run(inputPath,outputPath, useHS);
+        int r = job1Run(inputPaths,outputPath, useHS);
         long elapsedTime = System.currentTimeMillis() - startTime;
         System.out.println(elapsedTime + " FOR THIS TOTAL task d combiner JOB");
 

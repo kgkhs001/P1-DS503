@@ -37,16 +37,26 @@ public class H {
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
             URI[] cacheFiles = context.getCacheFiles();
-            if (cacheFiles != null && cacheFiles.length > 0) {
-                FileSystem fs = FileSystem.get(context.getConfiguration());
-                Path path = new Path(cacheFiles[0].toString());
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(path)))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        String[] parts = line.split(",");
-                        if (parts.length >= 4) {
+            if (cacheFiles != null) {
+                for (URI fileUri : cacheFiles) {
+                    Path path = new Path(fileUri.getPath());
+                    loadPageData(path, context.getConfiguration());
+                }
+            }
+        }
+
+        private void loadPageData(Path path, Configuration conf) throws IOException {
+            FileSystem fs = FileSystem.get(conf);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(path)))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 4) {
+                        try {
                             // ID, Name, Job, Region
                             pageCache.put(parts[0].trim(), new UserInfo(parts[1].trim(), Integer.parseInt(parts[3].trim())));
+                        } catch (NumberFormatException e) {
+                            // ignore bad lines
                         }
                     }
                 }
@@ -80,16 +90,24 @@ public class H {
         protected void setup(Context context) throws IOException, InterruptedException {
             // Re-load cache in Reducer to get nicknames for the final report
             URI[] cacheFiles = context.getCacheFiles();
-            if (cacheFiles != null && cacheFiles.length > 0) {
-                FileSystem fs = FileSystem.get(context.getConfiguration());
-                Path path = new Path(cacheFiles[0].toString());
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(path)))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        String[] parts = line.split(",");
-                        if (parts.length >= 2) {
-                            pageCache.put(parts[0].trim(), new UserInfo(parts[1].trim(), 0));
-                        }
+            if (cacheFiles != null) {
+                for (URI fileUri : cacheFiles) {
+                    Path path = new Path(fileUri.getPath());
+                    loadPageData(path, context.getConfiguration());
+                }
+            }
+        }
+
+        private void loadPageData(Path path, Configuration conf) throws IOException {
+            FileSystem fs = FileSystem.get(conf);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(path)))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 4) {
+                         try {
+                            pageCache.put(parts[0].trim(), new UserInfo(parts[1].trim(), Integer.parseInt(parts[3].trim())));
+                         } catch (NumberFormatException e) {}
                     }
                 }
             }
@@ -111,7 +129,8 @@ public class H {
 
             // Identify people I follow who are NOT in the 'WhoFollowMe' list
             String myID = key.toString();
-            String myNickname = pageCache.get(myID) != null ? pageCache.get(myID).nickname : "Unknown";
+            UserInfo myInfo = pageCache.get(myID);
+            String myNickname = myInfo != null ? myInfo.nickname : "Unknown";
 
             for (String followedID : peopleIFollow) {
                 if (!peopleWhoFollowMe.contains(followedID)) {
@@ -124,11 +143,25 @@ public class H {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "file:///"); // Local mode
 
-        Path followPath = new Path("C:/Users/ryker/IdeaProjects/Project1/follows_test.csv");
-        Path pagesPath = new Path("C:/Users/ryker/IdeaProjects/Project1/pages_test.csv");
-        Path finalOutputPath = new Path("C:/Users/ryker/IdeaProjects/Project1/HOutput.txt");
+        // args[0]: Follows
+        // args[1]: CircleNetPage (for cache)
+        // args[2]: Output
+
+        if (args.length < 3) {
+            System.err.println("Usage: H <follows_csv> <pages_file> <output_path>");
+            System.exit(-1);
+        }
+
+        Path followPath = new Path(args[0]);
+        Path pagesPath = new Path(args[1]);
+        Path finalOutputPath = new Path(args[2]);
+
+        // Cleanup output (to avoid FileAlreadyExistsException)
+        FileSystem fs = FileSystem.get(conf);
+        if (fs.exists(finalOutputPath)) {
+             fs.delete(finalOutputPath, true);
+        }
 
         Job job = Job.getInstance(conf, "Same Region No Follow Back");
         job.setJarByClass(H.class);

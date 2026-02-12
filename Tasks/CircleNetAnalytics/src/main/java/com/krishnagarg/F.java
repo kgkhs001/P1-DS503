@@ -93,12 +93,17 @@ public class F {
             URI[] cacheFiles = context.getCacheFiles();
             if (cacheFiles != null && cacheFiles.length > 0) {
                 FileSystem fs = FileSystem.get(context.getConfiguration());
-                Path path = new Path(cacheFiles[0].toString());
+                // Use the URI to get path, usually simpler on HDFS
+                Path path = new Path(cacheFiles[0].getPath());
                 try (BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(path)))) {
                     String line = br.readLine();
                     if (line != null) {
-                        // Job 1 outputs: AVERAGE [tab] value
-                        globalAverage = Double.parseDouble(line.split("\t")[1]);
+                        try {
+                             // Job 1 outputs: AVERAGE [tab] value
+                            globalAverage = Double.parseDouble(line.split("\t")[1]);
+                        } catch (Exception e) {
+                            // ignore or log
+                        }
                     }
                 }
             }
@@ -118,25 +123,36 @@ public class F {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "file:///");
 
-        Path followsPath = new Path("C:/Users/ryker/IdeaProjects/Project1/follows_test.csv");
-        Path intermediateOutput = new Path("C:/Users/ryker/IdeaProjects/Project1/intermediate_avg");
-        Path finalOutput = new Path("C:/Users/ryker/IdeaProjects/Project1/FOutput.txt");
+        if (args.length < 2) {
+            System.err.println("Usage: F <input path> <output path>");
+            System.exit(-1);
+        }
 
-        // Cleanup intermediate folder if exists
+        Path followsPath = new Path(args[0]);
+        Path outputPath = new Path(args[1]);
+        Path intermediateOutput = new Path(outputPath.toString() + "_intermediate");
+
+        // Cleanup output folders if exist
         FileSystem fs = FileSystem.get(conf);
-        if (fs.exists(intermediateOutput)) fs.delete(intermediateOutput, true);
+        if (fs.exists(intermediateOutput)) {
+             fs.delete(intermediateOutput, true);
+        }
+        if (fs.exists(outputPath)) {
+             fs.delete(outputPath, true);
+        }
 
         // Job 1 Configuration
         Job job1 = Job.getInstance(conf, "Calculate Average");
         job1.setJarByClass(F.class);
         job1.setMapperClass(AvgMapper.class);
-        job1.setCombinerClass(IntSumCombiner.class);
+        job1.setCombinerClass(IntSumCombiner.class); 
         job1.setReducerClass(AvgReducer.class);
         job1.setOutputKeyClass(Text.class);
         job1.setOutputValueClass(IntWritable.class);
-        job1.setMapOutputValueClass(IntWritable.class);
+        
+        job1.setNumReduceTasks(1); 
+        
         FileInputFormat.addInputPath(job1, followsPath);
         FileOutputFormat.setOutputPath(job1, intermediateOutput);
 
@@ -146,18 +162,27 @@ public class F {
             job2.setJarByClass(F.class);
 
             // Add Job 1 result to Distributed Cache
-            job2.addCacheFile(new URI("file://" + intermediateOutput.toUri().getPath() + "/part-r-00000"));
+            URI cacheUri = new URI(intermediateOutput.toString() + "/part-r-00000");
+            job2.addCacheFile(cacheUri);
 
             job2.setMapperClass(FilterMapper.class);
             job2.setCombinerClass(IntSumCombiner.class);
             job2.setReducerClass(FilterReducer.class);
+            
             job2.setOutputKeyClass(Text.class);
             job2.setOutputValueClass(IntWritable.class);
 
             FileInputFormat.addInputPath(job2, followsPath);
-            FileOutputFormat.setOutputPath(job2, finalOutput);
+            FileOutputFormat.setOutputPath(job2, outputPath);
 
-            System.exit(job2.waitForCompletion(true) ? 0 : 1);
+            boolean success = job2.waitForCompletion(true);
+            
+            // Cleanup intermediate
+            if (fs.exists(intermediateOutput)) {
+                fs.delete(intermediateOutput, true);
+            }
+            
+            System.exit(success ? 0 : 1);
         }
     }
 
